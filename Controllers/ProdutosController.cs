@@ -1,4 +1,5 @@
-﻿using API_RNB.Conexao;
+﻿using API_RNB.Dto;
+using API_RNB.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,27 +9,38 @@ namespace API_RNB.Controllers
     [ApiController]
     public class ProdutosController : ControllerBase
     {
-        private readonly FirebirdDatabase _firebirdDatabase;
+        private readonly ProdutoRepository _produtoRepository;
 
-        public ProdutosController(FirebirdDatabase firebirdDatabase)
+        public ProdutosController(ProdutoRepository produtoRepository)
         {
-            _firebirdDatabase = firebirdDatabase;
+            _produtoRepository = produtoRepository;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProdutos()
+        public async Task<ActionResult<IEnumerable<ProdutoDtoOutput>>> GetProdutos()
         {
             try
             {
-                // Obtém os produtos executando a procedure SP_WEB_API_PRODUTO
-                var produtos = await _firebirdDatabase.ExecuteProcedureAsync();
+                // Obtém os produtos através do repositório
+                var produtos = await _produtoRepository.GetProdutosAsync();
 
                 if (produtos == null)
                 {
                     return NotFound("Nenhum produto encontrado.");
                 }
 
-                return Ok(produtos);
+                // Mapeia ProdutoModel para ProdutoDtoOutput
+                var produtosDto = produtos.Select(p => new ProdutoDtoOutput
+                {
+                    Id = p.Id,
+                    Descricao = p.Descricao,
+                    Referencia = p.Referencia,
+                    Preco_Venda = p.Preco_Venda,
+                    Preco_Promocao = p.Preco_Promocao,
+                    Estoque = p.Estoque,
+                });
+
+                return Ok(produtosDto);
             }
             catch (System.Exception ex)
             {
