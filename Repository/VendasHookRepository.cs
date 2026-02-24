@@ -83,18 +83,17 @@ namespace API_RNB.Repository
             using (var connection = _db.CreateConnection())
             {
                 connection.Open();
-                var transaction = connection.BeginTransaction();
                 var sql =
                     @"
-                        UPDATE VENDAS_HOOK 
-                        SET STATUS = @Status,
-                            DATA_ENVIO = CASE WHEN @Status = 'enviado_com_sucesso' THEN CURRENT_DATE ELSE DATA_ENVIO END,
-                            ENVIADO = CASE WHEN @Status = 'enviado_com_sucesso' THEN 'S' ELSE ENVIADO END,
-                            LOG_ERRO = @Erro
-                        WHERE IDVENDA_HOOK = @Id";
+                    UPDATE VENDAS_HOOK 
+                    SET STATUS = @Status,
+                        DATA_ENVIO = CASE WHEN @Status = 'enviado_com_sucesso' THEN CURRENT_DATE ELSE DATA_ENVIO END,
+                        ENVIADO = CASE WHEN @Status = 'enviado_com_sucesso' THEN 'S' ELSE ENVIADO END,
+                        LOG_ERRO = @Erro,
+                        TENTATIVAS = CASE WHEN @Tentativas IS NOT NULL THEN @Tentativas ELSE TENTATIVAS END
+                    WHERE IDVENDA_HOOK = @Id";
 
-                await connection.ExecuteAsync(sql, input, transaction: transaction);
-                transaction.Commit();
+                await connection.ExecuteAsync(sql, input);
             }
         }
 

@@ -5,5 +5,6 @@ namespace API_RNB.Dto
         public int Id { get; set; }
         public string Status { get; set; }
         public string? Erro { get; set; }
+        public int? Tentativas { get; set; }
     }
 }

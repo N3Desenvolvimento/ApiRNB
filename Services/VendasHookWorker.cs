@@ -161,11 +161,15 @@ namespace API_RNB.Services
 
                 if (success)
                 {
+                    // Incrementa tentativas mesmo em caso de sucesso
+                    venda.Tentativas++;
+                    
                     historicoInput.Sucesso = "S";
                     var successInput = new VendaHookStatusDtoInput
                     {
                         Id = venda.IdVenda_Hook,
                         Status = "enviado_com_sucesso",
+                        Tentativas = venda.Tentativas
                     };
                     await repository.UpdateVendaHookStatusAsync(successInput);
                     _logger.LogInformation($"Venda id: {venda.IdVenda_Hook} enviada com sucesso.");
