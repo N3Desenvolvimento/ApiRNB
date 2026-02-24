@@ -1,19 +1,18 @@
-# Dto
+# Dto (Data Transfer Objects)
 
-Esta pasta contém os Objetos de Transferência de Dados (DTOs), utilizados para transferir dados entre a API e seus consumidores.
+Camada responsável por definir objetos de transferência de dados, usados para comunicação externa (API/Webhook) e desacoplamento do modelo de domínio.
 
-## Padrão de Nomenclatura
+## Arquivos e Responsabilidades
 
-- **[Entidade]DtoInput**: DTOs usados para entrada de dados (POST/PUT/PATCH), contendo apenas os campos necessários para a criação ou atualização.
-- **[Entidade]DtoOutput**: DTOs usados para saída de dados (GET/Listas), contendo os dados formatados para consumo externo.
+- **[WebhookPayloadDtoInput.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Dto/WebhookPayloadDtoInput.cs)**
+  - Estrutura do JSON enviado para o Webhook externo.
+  - Propriedades: `Cpf`, `Nome`, `Email`, `Telefone`, `Produtos`, etc.
 
-## Fluxo de Dados
+- **[VendaHookStatusDtoInput.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Dto/VendaHookStatusDtoInput.cs)**
+  - Dados para atualização de status da venda no repositório.
 
-1.  **Entrada**: Controller recebe `DtoInput` -> Converte para `Model` -> Envia para Repository/Service.
-2.  **Saída**: Repository retorna `Model` -> Controller converte para `DtoOutput` -> Retorna para o cliente.
+- **[VendaHookHistoricoDtoInput.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Dto/VendaHookHistoricoDtoInput.cs)**
+  - Dados para inserção no histórico de tentativas de envio.
 
-## Observações
-
-- Os DTOs desacoplam o modelo de banco de dados (Models) do contrato da API.
-- Permitem versionamento e evolução da API sem quebrar clientes existentes.
-- Podem conter validações (DataAnnotations) específicas para entrada de dados.
+- **[ProdutoDtoOutput.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Dto/ProdutoDtoOutput.cs)**
+  - Saída formatada para o endpoint de produtos (se utilizado).

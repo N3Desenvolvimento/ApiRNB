@@ -1,15 +1,18 @@
 # Models
 
-Esta pasta contém as classes de modelo (POCOs) que representam as entidades de domínio da aplicação.
+Camada responsável pelas definições das entidades de domínio e mapeamento do banco de dados.
 
-## Modelos
+## Arquivos e Responsabilidades
 
-- **ProdutoModel.cs**: Representa um produto com seus atributos básicos (Id, Descricao, Preco, Estoque).
-- **VendaHookModel.cs**: Representa uma venda com seus detalhes de hook (Nome, Email, Enviado, DataEnvio, Status, Tentativas, LogErro).
-- **VendaHookHistoricoModel.cs**: Representa o histórico de envio de um hook de venda, com detalhes da requisição/resposta e sucesso/erro.
+- **[ProdutoModel.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Models/ProdutoModel.cs)**
+  - Representa um produto retornado pela procedure `SP_WEB_API_PRODUTO`.
 
-## Observações
+- **[VendaHookModel.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Models/VendaHookModel.cs)**
+  - Representa uma venda na tabela `VENDAS_HOOK`.
+  - Contém lista de `Produtos` (`VendaItemModel`).
 
-- Os modelos devem refletir a estrutura do banco de dados, mas não conter lógica de negócio.
-- Utilizam propriedades públicas com getters/setters.
-- Podem conter anotações de validação ou serialização se necessário.
+- **[VendaItemModel.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Models/VendaItemModel.cs)**
+  - Representa um item de venda.
+
+- **[VendaHookHistoricoModel.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Models/VendaHookHistoricoModel.cs)**
+  - Representa o histórico de envio na tabela `VENDAS_HOOK_HISTORICO`.

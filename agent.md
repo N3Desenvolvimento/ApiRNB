@@ -1,144 +1,74 @@
 ## Visão geral do agente
 
-- Objetivo: manter e evoluir uma API simples de acesso a dados Firebird de um sistema legado.
-- Stack principal:
+- **Objetivo**: Manter e evoluir uma API de acesso a dados Firebird e integração de vendas via Webhook.
+- **Stack principal**:
   - ASP.NET Core Web API (.NET 6) — projeto [API_RNB.csproj](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/API_RNB.csproj)
   - Acesso a dados com Dapper e FirebirdSql.Data.FirebirdClient em [FirebirdDatabase.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Conexao/FirebirdDatabase.cs)
-  - Swagger/Swashbuckle para documentação automática em tempo de execução.
-- Foco principal: simplicidade e funcionalidade. Evite arquiteturas complexas; priorize código direto, claro e fácil de ler.
+  - Swagger/Swashbuckle para documentação automática.
+  - Background Services para processamento assíncrono.
+- **Foco principal**: Simplicidade, funcionalidade e performance.
 
 ## Estrutura atual do projeto
 
-- Configuração e bootstrap da aplicação:
-  - [Program.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Program.cs)
-    - Registra controllers, Swagger e a política de CORS `"AllowAll"`.
-    - Registra `FirebirdDatabase` como serviço `Scoped` para injeção de dependência.
-- Acesso a dados:
-  - [Conexao/FirebirdDatabase.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Conexao/FirebirdDatabase.cs)
-    - Encapsula a criação de conexão com Firebird.
-    - Expõe métodos para executar procedures e queries (ex: `GetPendingVendasHooksAsync`).
-- Controllers:
-  - [Controllers/ProdutosController.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Controllers/ProdutosController.cs)
-    - Endpoint `GET /Produtos` que retorna a lista de produtos da procedure `SP_WEB_API_PRODUTO`.
-  - [Controllers/VendasHookController.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Controllers/VendasHookController.cs)
-    - Endpoint `GET /VendasHook/monitorar` para listar vendas enviadas.
-  - [Controllers/WeatherForecastController.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Controllers/WeatherForecastController.cs)
-    - Controller de exemplo padrão do template do ASP.NET Core.
-- Services (Background):
-  - [Services/VendasHookWorker.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Services/VendasHookWorker.cs)
-    - Monitora a tabela `VENDAS_HOOK` e envia dados para webhook.
-    - **Arquitetura de Alta Performance**:
-      - Implementa padrão Producer-Consumer com `System.Threading.Channels`.
-      - Produtor: Monitora o banco e alimenta uma fila em memória (BoundedChannel).
-      - Consumidores: Múltiplas tasks concorrentes processam a fila e enviam requisições HTTP.
-    - **Resiliência Simplificada**:
-      - Tenta enviar até 3 vezes. Se falhar, registra erro e marca como `falha_envio`.
-      - Sem agendamento de retry no banco (retry ocorre nos próximos ciclos do worker se `TENTATIVAS < 3`).
-      - Registro detalhado de histórico na tabela `VENDAS_HOOK_HISTORICO`.
-      - Controle de estados: `pendente`, `enviando`, `enviado_com_sucesso`, `falha_envio`.
-- Modelos:
-  - `ProdutoModel` e `VendaHookModel` definidos em `FirebirdDatabase.cs`.
-  - `WeatherForecast` em [WeatherForecast.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/WeatherForecast.cs).
+- **Configuração e Bootstrap**:
+  - [Program.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Program.cs): Configura DI, Swagger, CORS ("AllowAll") e Workers.
+- **Acesso a Dados (Data Layer)**:
 
-## Objetivos de design
+  - [Conexao/FirebirdDatabase.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Conexao/FirebirdDatabase.cs): Gerencia conexão com Firebird (string de conexão hardcoded atualmente).
+  - [Repository/ProdutoRepository.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Repository/ProdutoRepository.cs): Acesso a dados de produtos.
+  - [Repository/VendasHookRepository.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Repository/VendasHookRepository.cs): Acesso a dados de vendas para webhook.
 
-- Manter o código simples e funcional:
-  - Prefira poucas camadas bem definidas (Controller → Acesso a dados → Banco).
-  - Evite abstrações genéricas desnecessárias (por exemplo, repositórios genéricos complexos se não forem realmente necessários).
-  - Nomes claros para classes, métodos e variáveis.
-- Facilitar manutenção por futuros programadores:
-  - Separar responsabilidades:
-    - Controllers: orquestram a requisição HTTP e retornam `IActionResult`.
-    - Classes de acesso a dados: encapsulam apenas o acesso ao Firebird.
-  - Manter cada método com responsabilidade única e tamanho reduzido.
-  - Adicionar logs onde ajudarem no diagnóstico (usando `ILogger` padrão do ASP.NET Core).
-- Segurança e configuração:
-  - Não manter strings de conexão sensíveis diretamente no código.
-  - Padrão recomendado: mover a string de conexão para `appsettings.json` / `appsettings.Development.json` ou secret manager do .NET.
+- **Controllers (API Layer)**:
 
-## Como o fluxo da API funciona hoje
+  - [Controllers/ProdutosController.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Controllers/ProdutosController.cs): Endpoint `GET /Produtos`.
+  - [Controllers/WeatherForecastController.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Controllers/WeatherForecastController.cs): Exemplo padrão.
 
-1. O cliente faz uma requisição HTTP (por exemplo, `GET /Produtos`).
-2. O ASP.NET Core direciona a requisição para o controller correspondente:
-   - `ProdutosController` em [Controllers/ProdutosController.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Controllers/ProdutosController.cs).
-3. O controller recebe `FirebirdDatabase` via injeção de dependência (registrado em `Program.cs`).
-4. O método `GetProdutos` chama `_firebirdDatabase.ExecuteProcedureAsync()`.
-5. `FirebirdDatabase` abre uma conexão Firebird e executa a procedure `SP_WEB_API_PRODUTO` via Dapper.
-6. O resultado é mapeado para `ProdutoModel` e retornado no `Ok(...)` do controller.
+- **Services (Business/Background Layer)**:
 
-## Boas práticas específicas para este projeto
+  - [Services/VendasHookWorker.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Services/VendasHookWorker.cs):
+    - Serviço de Background (HostedService).
+    - Monitora tabela `VENDAS_HOOK` a cada 30s.
+    - Implementa padrão Producer-Consumer com `System.Threading.Channels` para alta performance.
+    - Envia dados para webhook externo configurado no código.
+  - [Services/WebhookService.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Services/WebhookService.cs): Lógica de construção de payload e envio HTTP.
 
-- **Simplicidade primeiro**
+- **Models & DTOs**:
+  - [Models/](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Models/): Modelos de domínio (ex: `ProdutoModel`, `VendaHookModel`).
+  - [Dto/](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Dto/): Objetos de transferência de dados (ex: `WebhookPayloadDtoInput`).
 
-  - Antes de introduzir novas camadas (por exemplo, Services, Repositories, DTOs complexos), avalie se realmente é necessário.
-  - Se um endpoint pode ser implementado com um controller e uma chamada direta a uma classe de acesso a dados, essa é a abordagem preferida.
+## Fluxos de Execução
 
-- **Organização de código**
+### 1. Consulta de Produtos
 
-  - Novos recursos devem seguir padrão semelhante ao de Produtos:
-    - Criar um controller em `Controllers/`.
-    - Criar uma classe específica de acesso a dados (ou reutilizar uma existente) em uma pasta dedicada (`Conexao/` ou outra pasta de dados).
-  - Se a lógica de dados crescer, considere extrair modelos (`Models/`) em arquivos separados.
+1. Cliente chama `GET /Produtos`.
+2. `ProdutosController` aciona `ProdutoRepository`.
+3. `ProdutoRepository` executa procedure `SP_WEB_API_PRODUTO` via `FirebirdDatabase`.
+4. Retorna lista de produtos.
 
-- **Configuração de banco de dados**
+### 2. Integração de Vendas (Webhook)
 
-  - A string de conexão atualmente está em `FirebirdDatabase` por simplicidade inicial.
-  - Melhoria recomendada: ler a string de conexão de `appsettings.json` via `IConfiguration` e não versionar credenciais sensíveis.
+1. `VendasHookWorker` (Producer) roda em background a cada 30s.
+2. Consulta `VENDAS_HOOK` via `VendasHookRepository` buscando vendas não enviadas (`ENVIADO IS NULL` ou `'N'`).
+3. Publica vendas encontradas em um `Channel` em memória.
+4. Múltiplos Consumers (Tasks) leem do `Channel`.
+5. Cada Consumer:
+   - Monta payload com `WebhookService`.
+   - Envia POST para URL configurada (`https://hooknitro.phdvirtual.com.br/...`).
+   - Registra sucesso/falha em `VENDAS_HOOK_HISTORICO` e atualiza status em `VENDAS_HOOK`.
 
-- **CORS**
-  - A política `"AllowAll"` em [Program.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Program.cs#L13-L21) está aberta para qualquer origem.
-  - Em produção, considere restringir para os domínios que realmente consomem a API.
+## Objetivos de Design e Boas Práticas
 
-## Como rodar o projeto
+- **Simplicidade**: Manter arquitetura limpa, sem super-engenharia.
+- **Performance**: Uso de `Dapper` para banco e `Channels` para processamento assíncrono.
+- **Organização**:
+  - Controllers: Apenas HTTP.
+  - Services: Regras de negócio e orquestração.
+  - Repository: Acesso a dados puro.
+- **Configuração**:
+  - _TODO_: Mover Connection String e Webhook URL para `appsettings.json` (atualmente hardcoded).
 
-Pré-requisitos:
+## Comandos Disponíveis
 
-- .NET 6 SDK instalado.
-- A base Firebird configurada e acessível (conforme string de conexão).
-
-Comandos básicos (no diretório do projeto):
-
-- Restaurar dependências:
-
-  ```bash
-  dotnet restore
-  ```
-
-- Build:
-
-  ```bash
-  dotnet build
-  ```
-
-- Executar a API:
-
-  ```bash
-  dotnet run
-  ```
-
-- Ao subir, a API expõe Swagger em `/swagger` (configurado em `Program.cs`).
-
-## Como adicionar um novo endpoint de forma simples
-
-Exemplo de fluxo recomendado:
-
-1. Criar um modelo de dados (se necessário) em um arquivo dedicado dentro de uma pasta `Models/` ou próximo ao ponto de uso, mantendo nomes claros.
-2. Criar ou reutilizar uma classe de acesso a dados que:
-   - Receba configurações/conexões via injeção.
-   - Use Dapper para executar queries ou procedures específicas.
-3. Criar um controller em `Controllers/`:
-   - Decorar com `[ApiController]` e `[Route("[controller]")]`.
-   - Injetar a classe de acesso a dados pelo construtor.
-   - Implementar actions (`[HttpGet]`, `[HttpPost]`, etc.) retornando `IActionResult` com `Ok`, `NotFound`, `BadRequest`, etc.
-4. Registrar qualquer serviço adicional em `Program.cs` usando `builder.Services`.
-
-## Pontos de atenção para agentes
-
-- Não adicionar frameworks, bibliotecas ou padrões de arquitetura pesados sem necessidade explícita.
-- Sempre priorizar:
-  - Clareza do código.
-  - Baixa quantidade de arquivos/classe para resolver um problema simples.
-  - Comentários apenas quando a regra de negócio não for óbvia pelo código.
-- Evitar:
-  - “Over-engineering” (por exemplo, camadas genéricas que não trazem benefício claro).
-  - Quebrar endpoints simples em múltiplas classes quando isso não melhora a legibilidade.
+- `dotnet run`: Inicia a aplicação.
+- `dotnet build`: Compila o projeto.
+- Swagger acessível em `/swagger` quando em execução.

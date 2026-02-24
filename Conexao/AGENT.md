@@ -1,15 +1,14 @@
 # Conexao
 
-Esta pasta é responsável exclusivamente pela infraestrutura de conexão com o banco de dados Firebird.
+Camada responsável pela configuração e gerenciamento da conexão com o banco de dados.
 
-## Responsabilidades
+## Arquivos e Responsabilidades
 
-- **FirebirdDatabase.cs**:
-  - Contém a string de conexão centralizada.
-  - Implementa o método `CreateConnection()` para retornar uma `IDbConnection` (FbConnection).
-  - Configurações de pooling, dialeto e charset.
+- **[FirebirdDatabase.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Conexao/FirebirdDatabase.cs)**
+  - Responsabilidade: Criar e fornecer instâncias de `IDbConnection` para o Firebird.
+  - Biblioteca: `FirebirdSql.Data.FirebirdClient`.
+  - Configuração: A Connection String está definida internamente nesta classe (Hardcoded).
+  - Escopo: Registrado como `Scoped` no container de DI.
 
-## Notas Técnicas
-
-- A string de conexão aponta para um banco local (`C:\Dados\RNBORRACHAS.FDB`).
-- O acesso a dados (Queries/Commands) foi movido para a camada `Repository`.
+## Observações
+- A Connection String deve ser movida para `appsettings.json` em futuras refatorações para maior segurança e flexibilidade.

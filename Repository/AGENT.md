@@ -1,20 +1,19 @@
 # Repository
 
-Esta pasta contém a camada de acesso a dados da aplicação, separada por entidade/tabela.
+Camada responsável pelo acesso direto aos dados (DAL), executando queries e procedures.
 
-## Responsabilidades
+## Arquivos e Responsabilidades
 
-- **ProdutoRepository.cs**:
-  - Encapsula as consultas SQL relacionadas a produtos (`PRODUTO`, `PRODUTO_CODBARRA`).
-  - Utiliza Dapper para mapeamento ORM.
-  - Implementa métodos para listar produtos e buscar por código de barras.
+- **[ProdutoRepository.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Repository/ProdutoRepository.cs)**
+  - Entidade: Produtos.
+  - Operações: Leitura de produtos via procedure `SP_WEB_API_PRODUTO`.
 
-- **VendasHookRepository.cs**:
-  - Encapsula as operações relacionadas a hooks de vendas (`VENDAS_HOOK`, `VENDAS_HOOK_HISTORICO`).
-  - Implementa métodos para buscar vendas pendentes, atualizar status/retry, e registrar histórico de envio.
+- **[VendasHookRepository.cs](file:///c:/Users/kawan/OneDrive/Área%20de%20Trabalho/Projetos%20Atualizados/_RNB/API_RNB/Repository/VendasHookRepository.cs)**
+  - Entidade: Vendas (para Webhook).
+  - Operações:
+    - `GetPendingVendasHooksAsync`: Busca vendas pendentes de envio.
+    - `UpdateVendaHookStatusAsync`: Atualiza status da venda.
+    - `InsertVendaHookHistoricoAsync`: Registra log de envio.
 
-## Padrões
-
-- Os repositórios recebem `FirebirdDatabase` via injeção de dependência.
-- As conexões são abertas apenas quando necessárias (`using (var connection = ...)`).
-- Dapper é utilizado para performance e simplicidade.
+## Tecnologia
+- Utiliza **Dapper** para mapeamento Objeto-Relacional leve e performático.

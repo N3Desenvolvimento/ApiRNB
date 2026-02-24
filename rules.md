@@ -95,3 +95,12 @@
 - Garantir que o projeto compila (`dotnet build`) antes de subir alterações.
 - Quando possível, validar manualmente endpoints principais (por exemplo, via Swagger, Postman ou ferramentas similares).
 - Se forem adicionados testes automatizados no futuro, seguir convenções padrão de testes .NET (xUnit, NUnit ou MSTest, conforme escolhido).
+
+## Documentação Viva e AGENT.md
+
+- **Regra de Ouro**: Sempre que o agente de IA realizar qualquer alteração no código (refatoração, nova feature, correção de bug), ele **DEVE OBRIGATORIAMENTE** atualizar o arquivo `AGENT.md` correspondente ao contexto da mudança.
+- **Contexto**:
+  - Se a mudança for em um Controller, atualize `Controllers/AGENT.md`.
+  - Se for em um Repository, atualize `Repository/AGENT.md`.
+  - Se for uma mudança estrutural ou global, atualize o `agent.md` na raiz.
+- **Conteúdo**: A atualização deve refletir o novo estado do código, removendo informações obsoletas e documentando novas funcionalidades, parâmetros ou comportamentos.
