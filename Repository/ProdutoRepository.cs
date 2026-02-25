@@ -21,9 +21,14 @@ namespace API_RNB.Repository
             using (var connection = _db.CreateConnection())
             {
                 connection.Open();
-                var sql =
-                    "SELECT IDPRODUTO as Id, DESCRICAO, REFERENCIA, PRECO_VENDA, PRECO_PROMOCAO, ESTOQUE FROM PRODUTO";
-                return await connection.QueryAsync<ProdutoModel>(sql);
+
+                // Chama a procedure SP_WEB_API_PRODUTO
+                var result = await connection.QueryAsync<ProdutoModel>(
+                    "SP_WEB_API_PRODUTO",
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return result;
             }
         }
 
